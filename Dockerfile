@@ -1,21 +1,37 @@
-FROM alpine AS builder
+# Build stage: compile the Go application
+FROM golang:1.21-alpine AS builder
 
-# Install the Certificate-Authority certificates for the app to be able to make
-# calls to HTTPS endpoints.
-# Git is required for fetching the dependencies.
-RUN apk add --no-cache ca-certificates
+# Install dependencies
+RUN apk add --no-cache ca-certificates git
 
-# Final stage: the running container.
+# Set working directory
+WORKDIR /app
+
+# Copy go mod files
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -ldflags="-s -w -X main.Version=docker -X main.Revision=$(git rev-parse --short HEAD) -X main.Branch=$(git rev-parse --abbrev-ref HEAD) -X main.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    -o rabbitmq_exporter .
+
+# Final stage: the running container
 FROM scratch AS final
 
-# Add maintainer label in case somebody has questions.
-LABEL maintainer="Kris.Budde@gmail.com"
+# Add maintainer label
+LABEL maintainer="gopaytech@gopay.com"
 
-# Import the Certificate-Authority certificates for enabling HTTPS.
+# Import the Certificate-Authority certificates for enabling HTTPS
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-# Import the compiled executable from the first stage.
-COPY rabbitmq_exporter /rabbitmq_exporter
+# Import the compiled executable from the builder stage
+COPY --from=builder /app/rabbitmq_exporter /rabbitmq_exporter
 
 # Declare the port on which the webserver will be exposed.
 # As we're going to run the executable as an unprivileged user, we can't bind
