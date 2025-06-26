@@ -1,5 +1,6 @@
 [
   {
+    "type": "classic",
     "arguments": {
       "x-max-length-bytes": 99
     },
@@ -77,6 +78,7 @@
     "vhost": "/"
   },
   {
+    "type": "classic",
     "arguments": {
       "x-max-length": 55
     },

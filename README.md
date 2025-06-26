@@ -2,19 +2,45 @@
 
 IMPORTANT: This exporter only works with RabbitMQ 3. Please use the official exporter for RabbitMQ 4 or newer. See https://github.com/kbudde/rabbitmq_exporter/issues/383 for details.
 
-# RabbitMQ Exporter [![Build Status](https://travis-ci.org/kbudde/rabbitmq_exporter.svg?branch=master)](https://travis-ci.org/kbudde/rabbitmq_exporter) [![Coverage Status](https://coveralls.io/repos/kbudde/rabbitmq_exporter/badge.svg?branch=master)](https://coveralls.io/r/kbudde/rabbitmq_exporter?branch=master) [![](https://images.microbadger.com/badges/image/kbudde/rabbitmq-exporter.svg)](http://microbadger.com/images/kbudde/rabbitmq-exporter "Get your own image badge on microbadger.com")
+# RabbitMQ Exporter [![CI](https://github.com/gopaytech/rabbitmq_exporter/workflows/CI/badge.svg)](https://github.com/gopaytech/rabbitmq_exporter/actions) [![Release](https://github.com/gopaytech/rabbitmq_exporter/workflows/Release/badge.svg)](https://github.com/gopaytech/rabbitmq_exporter/actions) [![Security](https://github.com/gopaytech/rabbitmq_exporter/workflows/Security/badge.svg)](https://github.com/gopaytech/rabbitmq_exporter/actions)
+
+> **Note**: This is a fork of the original [kbudde/rabbitmq_exporter](https://github.com/kbudde/rabbitmq_exporter) maintained by GoPay Tech team.
 
 Prometheus exporter for RabbitMQ metrics.
 Data is scraped by [prometheus](https://prometheus.io).
 
-Please note this an unofficial plugin. There is also an official plugin from [RabbitMQ.com](https://www.rabbitmq.com/prometheus.html). See [comparison to official exporter](#comparison-to-official-exporter)
+Please note this is an unofficial plugin. There is also an official plugin from [RabbitMQ.com](https://www.rabbitmq.com/prometheus.html). See [comparison to official exporter](#comparison-to-official-exporter)
 
 ## Installation
 
 ### Binary release
 
-You can download the latest release on the [release page](https://github.com/kbudde/rabbitmq_exporter/releases).
-Docker images are push to [docker hub](https://hub.docker.com/r/kbudde/rabbitmq-exporter/tags)
+You can download the latest release on the [release page](https://github.com/gopaytech/rabbitmq_exporter/releases).
+
+### Container Images
+
+#### GitHub Container Registry (Recommended)
+```bash
+# Latest release
+docker pull ghcr.io/gopaytech/rabbitmq_exporter:latest
+
+# Specific version
+docker pull ghcr.io/gopaytech/rabbitmq_exporter:v1.0.0
+
+# Development builds
+docker pull ghcr.io/gopaytech/rabbitmq_exporter:main
+```
+
+#### Docker Hub
+```bash
+# Latest release  
+docker pull gopaytech/rabbitmq-exporter:latest
+
+# Specific version
+docker pull gopaytech/rabbitmq-exporter:v1.0.0
+```
+
+**Supported Architectures**: `linux/amd64`, `linux/arm64`, `linux/arm/v6`, `linux/arm/v7`
 
 ### docker: rabbitmq container with network sharing
 
@@ -26,7 +52,7 @@ The rabbitmq_exporter is sharing the network interface with the rabbitmq contain
 
 1. Start rabbitmq_exporter in container.
 
-        docker run -d --net=container:my-rabbit kbudde/rabbitmq-exporter
+        docker run -d --net=container:my-rabbit ghcr.io/gopaytech/rabbitmq_exporter:latest
 
 Now your metrics are exposed through [http://host:9419/metrics](http://host:9419/metrics). The management plugin does not need to be exposed.
 
@@ -113,6 +139,54 @@ This exporter:
 
 probalby best solution is to use both exporters:
 [comment from shamil](https://github.com/kbudde/rabbitmq_exporter/issues/156#issuecomment-631979910)
+
+## Development
+
+### Quick Start
+
+We provide a convenient development script to help with local development:
+
+```bash
+# Make the script executable (first time only)
+chmod +x dev.sh
+
+# Run all checks, tests, and builds
+./dev.sh all
+
+# Run individual commands
+./dev.sh test          # Run tests only
+./dev.sh build         # Build binary only  
+./dev.sh docker        # Build Docker image only
+./dev.sh run           # Run locally (after build)
+./dev.sh clean         # Clean up artifacts
+```
+
+### Manual Development
+
+```bash
+# Install dependencies
+go mod tidy
+
+# Run tests
+go test -v ./...
+
+# Build binary
+go build -o rabbitmq_exporter
+
+# Build Docker image
+docker build -t gopaytech/rabbitmq-exporter:dev .
+```
+
+### GitHub Actions CI/CD
+
+This repository uses GitHub Actions for automated CI/CD:
+
+- **Pull Requests**: Run tests, linting, and GoReleaser validation
+- **Main Branch**: Build and push development images to GHCR
+- **Tags**: Create releases with multi-architecture builds
+- **Security**: Weekly vulnerability scanning with Trivy and govulncheck
+
+See [.github/ACTIONS.md](.github/ACTIONS.md) for detailed documentation.
 
 ## common errors / FAQ
 

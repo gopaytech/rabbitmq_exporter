@@ -1,10 +1,12 @@
 before:
   hooks:
     - go mod tidy
+    - go test ./...
 builds:
   - env:
       - CGO_ENABLED=0
-    #binary: rabbitmq_exporter-{{.Version}}.{{.Target}}
+    main: ./main.go
+    binary: rabbitmq_exporter
     targets:
     - linux_amd64
     - linux_arm64
@@ -15,8 +17,11 @@ builds:
     - darwin_arm64
     tags: netgo staticbuild
     ldflags: 
+      -  -s -w
       -  -X main.Version={{.Version}}
       -  -X main.Revision={{.ShortCommit}}
+      -  -X main.Branch={{.Branch}}
+      -  -X main.BuildDate={{.CommitDate}}
       -  -X main.Branch={{.Branch}}
       -  -X main.BuildDate={{.CommitDate}}
 checksum:
@@ -28,97 +33,97 @@ release:
   footer: |
     ## Docker images
 
-    - `docker pull ghcr.io/kbudde/rabbitmq_exporter:{{.Version}}`
-    - `docker pull ghcr.io/kbudde/rabbitmq_exporter:{{.ShortCommit}}`
-    - `docker pull kbudde/rabbitmq-exporter:{{.Version}}`
-    - `docker pull kbudde/rabbitmq-exporter:{{.ShortCommit}}`
+    - `docker pull ghcr.io/gopaytech/rabbitmq_exporter:{{.Version}}`
+    - `docker pull ghcr.io/gopaytech/rabbitmq_exporter:{{.ShortCommit}}`
+    - `docker pull gopaytech/rabbitmq-exporter:{{.Version}}`
+    - `docker pull gopaytech/rabbitmq-exporter:{{.ShortCommit}}`
 
 dockers:
 - goos: linux
   goarch: amd64
   image_templates:
-    - "kbudde/rabbitmq-exporter:linux-amd64-{{.ShortCommit}}"
-    - "ghcr.io/kbudde/rabbitmq_exporter:linux-amd64-{{.ShortCommit}}"
+    - "gopaytech/rabbitmq-exporter:linux-amd64-{{.ShortCommit}}"
+    - "ghcr.io/gopaytech/rabbitmq_exporter:linux-amd64-{{.ShortCommit}}"
   use: buildx
   build_flag_templates:
   - "--label=org.opencontainers.image.created={{.Date}}"
   - "--label=org.opencontainers.image.title={{.ProjectName}}"
   - "--label=org.opencontainers.image.revision={{.FullCommit}}"
   - "--label=org.opencontainers.image.version={{.Version}}"
-  - "--label=org.opencontainers.image.source=https://github.com/kbudde/rabbitmq_exporter"
+  - "--label=org.opencontainers.image.source=https://github.com/gopaytech/rabbitmq_exporter"
   - "--platform=linux/amd64"
 
 - goos: linux
   goarch: arm
   goarm: "6"
   image_templates:
-  - "kbudde/rabbitmq-exporter:linux-arm6-{{.ShortCommit}}"
-  - "ghcr.io/kbudde/rabbitmq_exporter:linux-arm6-{{.ShortCommit}}"
+  - "gopaytech/rabbitmq-exporter:linux-arm6-{{.ShortCommit}}"
+  - "ghcr.io/gopaytech/rabbitmq_exporter:linux-arm6-{{.ShortCommit}}"
   use: buildx
   build_flag_templates:
   - "--label=org.opencontainers.image.created={{.Date}}"
   - "--label=org.opencontainers.image.title={{.ProjectName}}"
   - "--label=org.opencontainers.image.revision={{.FullCommit}}"
   - "--label=org.opencontainers.image.version={{.Version}}"
-  - "--label=org.opencontainers.image.source=https://github.com/kbudde/rabbitmq_exporter"
+  - "--label=org.opencontainers.image.source=https://github.com/gopaytech/rabbitmq_exporter"
   - "--platform=linux/arm/v6"
 
 - goos: linux
   goarch: arm
   goarm: "7"
   image_templates:
-  - "kbudde/rabbitmq-exporter:linux-arm7-{{.ShortCommit}}"
-  - "ghcr.io/kbudde/rabbitmq_exporter:linux-arm7-{{.ShortCommit}}"
+  - "gopaytech/rabbitmq-exporter:linux-arm7-{{.ShortCommit}}"
+  - "ghcr.io/gopaytech/rabbitmq_exporter:linux-arm7-{{.ShortCommit}}"
   use: buildx
   build_flag_templates:
   - "--label=org.opencontainers.image.created={{.Date}}"
   - "--label=org.opencontainers.image.title={{.ProjectName}}"
   - "--label=org.opencontainers.image.revision={{.FullCommit}}"
   - "--label=org.opencontainers.image.version={{.Version}}"
-  - "--label=org.opencontainers.image.source=https://github.com/kbudde/rabbitmq_exporter"
+  - "--label=org.opencontainers.image.source=https://github.com/gopaytech/rabbitmq_exporter"
   - "--platform=linux/arm/v7"
 
 - goos: linux
   goarch: arm64
   image_templates:
-  - "kbudde/rabbitmq-exporter:linux-arm64-{{.ShortCommit}}"
-  - "ghcr.io/kbudde/rabbitmq_exporter:linux-arm64-{{.ShortCommit}}"
+  - "gopaytech/rabbitmq-exporter:linux-arm64-{{.ShortCommit}}"
+  - "ghcr.io/gopaytech/rabbitmq_exporter:linux-arm64-{{.ShortCommit}}"
   use: buildx
   build_flag_templates:
   - "--label=org.opencontainers.image.created={{.Date}}"
   - "--label=org.opencontainers.image.title={{.ProjectName}}"
   - "--label=org.opencontainers.image.revision={{.FullCommit}}"
   - "--label=org.opencontainers.image.version={{.Version}}"
-  - "--label=org.opencontainers.image.source=https://github.com/kbudde/rabbitmq_exporter"
+  - "--label=org.opencontainers.image.source=https://github.com/gopaytech/rabbitmq_exporter"
   - "--platform=linux/arm64"
 
 
 docker_manifests:
 -
-  name_template: ghcr.io/kbudde/rabbitmq_exporter:latest
+  name_template: ghcr.io/gopaytech/rabbitmq_exporter:latest
   image_templates:
-  - ghcr.io/kbudde/rabbitmq_exporter:linux-amd64-{{.ShortCommit}}
-  - ghcr.io/kbudde/rabbitmq_exporter:linux-arm6-{{.ShortCommit}}
-  - ghcr.io/kbudde/rabbitmq_exporter:linux-arm7-{{.ShortCommit}}
-  - ghcr.io/kbudde/rabbitmq_exporter:linux-arm64-{{.ShortCommit}}
+  - ghcr.io/gopaytech/rabbitmq_exporter:linux-amd64-{{.ShortCommit}}
+  - ghcr.io/gopaytech/rabbitmq_exporter:linux-arm6-{{.ShortCommit}}
+  - ghcr.io/gopaytech/rabbitmq_exporter:linux-arm7-{{.ShortCommit}}
+  - ghcr.io/gopaytech/rabbitmq_exporter:linux-arm64-{{.ShortCommit}}
 -
-  name_template: kbudde/rabbitmq-exporter:latest
+  name_template: gopaytech/rabbitmq-exporter:latest
   image_templates:
-  - kbudde/rabbitmq-exporter:linux-amd64-{{.ShortCommit}}
-  - kbudde/rabbitmq-exporter:linux-arm6-{{.ShortCommit}}
-  - kbudde/rabbitmq-exporter:linux-arm7-{{.ShortCommit}}
-  - kbudde/rabbitmq-exporter:linux-arm64-{{.ShortCommit}}
+  - gopaytech/rabbitmq-exporter:linux-amd64-{{.ShortCommit}}
+  - gopaytech/rabbitmq-exporter:linux-arm6-{{.ShortCommit}}
+  - gopaytech/rabbitmq-exporter:linux-arm7-{{.ShortCommit}}
+  - gopaytech/rabbitmq-exporter:linux-arm64-{{.ShortCommit}}
 -
-  name_template: ghcr.io/kbudde/rabbitmq_exporter:{{.Version}}
+  name_template: ghcr.io/gopaytech/rabbitmq_exporter:{{.Version}}
   image_templates:
-  - ghcr.io/kbudde/rabbitmq_exporter:linux-amd64-{{.ShortCommit}}
-  - ghcr.io/kbudde/rabbitmq_exporter:linux-arm6-{{.ShortCommit}}
-  - ghcr.io/kbudde/rabbitmq_exporter:linux-arm7-{{.ShortCommit}}
-  - ghcr.io/kbudde/rabbitmq_exporter:linux-arm64-{{.ShortCommit}}
+  - ghcr.io/gopaytech/rabbitmq_exporter:linux-amd64-{{.ShortCommit}}
+  - ghcr.io/gopaytech/rabbitmq_exporter:linux-arm6-{{.ShortCommit}}
+  - ghcr.io/gopaytech/rabbitmq_exporter:linux-arm7-{{.ShortCommit}}
+  - ghcr.io/gopaytech/rabbitmq_exporter:linux-arm64-{{.ShortCommit}}
 -
-  name_template: kbudde/rabbitmq-exporter:{{.Version}}
+  name_template: gopaytech/rabbitmq-exporter:{{.Version}}
   image_templates:
-  - kbudde/rabbitmq-exporter:linux-amd64-{{.ShortCommit}}
-  - kbudde/rabbitmq-exporter:linux-arm6-{{.ShortCommit}}
-  - kbudde/rabbitmq-exporter:linux-arm7-{{.ShortCommit}}
-  - kbudde/rabbitmq-exporter:linux-arm64-{{.ShortCommit}}
+  - gopaytech/rabbitmq-exporter:linux-amd64-{{.ShortCommit}}
+  - gopaytech/rabbitmq-exporter:linux-arm6-{{.ShortCommit}}
+  - gopaytech/rabbitmq-exporter:linux-arm7-{{.ShortCommit}}
+  - gopaytech/rabbitmq-exporter:linux-arm64-{{.ShortCommit}}
