@@ -5,7 +5,7 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
-    main: ./main.go
+    main: .
     binary: rabbitmq_exporter
     targets:
     - linux_amd64
@@ -38,9 +38,6 @@ checksum:
 changelog:
   use: github-native
 release:
-  github:
-    owner: gopaytech
-    name: rabbitmq_exporter
   discussion_category_name: Announcements
   draft: false
   prerelease: auto
