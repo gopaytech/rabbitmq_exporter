@@ -78,12 +78,19 @@ jobs:
             type=semver,pattern={{major}}
             type=sha
       -
+        name: Debug git state
+        run: |
+          echo "Current tag: ${{ github.ref_name }}"
+          echo "Repository: ${{ github.repository }}"
+          git tag --list
+          git log --oneline -5
+      -
         name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
           version: latest
-          args: release --rm-dist
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCKER_CLI_EXPERIMENTAL: enabled
@@ -94,3 +101,16 @@ jobs:
           echo "✅ Release created successfully!"
           echo "📦 Binaries and Docker images have been published"
           echo "🔗 Check the release at: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+      -
+        name: Debug release artifacts
+        if: always()
+        run: |
+          echo "=== Release Debug Information ==="
+          echo "Working directory contents:"
+          ls -la
+          echo "Dist directory contents:"
+          ls -la dist/ || echo "No dist directory found"
+          echo "GitHub API releases check:"
+          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/releases" | \
+            jq -r '.[0] | "Latest release: \(.tag_name) - \(.name)"' || echo "No releases found"
