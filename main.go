@@ -32,7 +32,18 @@ func initLogger() {
 func main() {
 	var checkURL = flag.String("check-url", "", "Curl url and return exit code (http: 200 => 0, otherwise 1)")
 	var configFile = flag.String("config-file", "conf/rabbitmq.conf", "path to json config")
+	var version = flag.Bool("version", false, "show version information and exit")
 	flag.Parse()
+
+	if *version {
+		log.WithFields(log.Fields{
+			"VERSION":    Version,
+			"REVISION":   Revision,
+			"BRANCH":     Branch,
+			"BUILD_DATE": BuildDate,
+		}).Info("RabbitMQ Exporter version information")
+		return
+	}
 
 	if *checkURL != "" { // do a single http get request. Used in docker healthckecks as curl is not inside the image
 		curl(*checkURL)
