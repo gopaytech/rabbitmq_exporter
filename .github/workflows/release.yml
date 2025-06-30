@@ -43,6 +43,13 @@ jobs:
         name: Available buildx platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
       -
+        name: Validate GoReleaser config
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: check
+      -
         name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -79,3 +86,11 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_CLI_EXPERIMENTAL: enabled
+      -
+        name: Upload Release Assets
+        if: success()
+        run: |
+          echo "✅ Release created successfully!"
+          echo "📦 Binaries and Docker images have been published"
+          echo "🔗 Check the release at: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"

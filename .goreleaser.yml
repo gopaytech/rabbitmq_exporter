@@ -22,21 +22,57 @@ builds:
       -  -X main.Revision={{.ShortCommit}}
       -  -X main.Branch={{.Branch}}
       -  -X main.BuildDate={{.CommitDate}}
-      -  -X main.Branch={{.Branch}}
-      -  -X main.BuildDate={{.CommitDate}}
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+      - config.example.json
 checksum:
   name_template: 'checksums.txt'
 changelog:
   use: github-native
 release:
+  github:
+    owner: gopaytech
+    name: rabbitmq_exporter
   discussion_category_name: Announcements
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## RabbitMQ Exporter {{.Tag}}
+    
+    This release includes multi-architecture binaries and Docker images for the RabbitMQ Exporter.
   footer: |
-    ## Docker images
-
-    - `docker pull ghcr.io/gopaytech/rabbitmq_exporter:{{.Version}}`
-    - `docker pull ghcr.io/gopaytech/rabbitmq_exporter:{{.ShortCommit}}`
-    - `docker pull gopaytech/rabbitmq-exporter:{{.Version}}`
-    - `docker pull gopaytech/rabbitmq-exporter:{{.ShortCommit}}`
+    ## 📦 Installation
+    
+    ### Binaries
+    Download the appropriate binary for your platform from the assets below.
+    
+    ### Docker Images
+    
+    **GitHub Container Registry (Recommended):**
+    ```bash
+    docker pull ghcr.io/gopaytech/rabbitmq_exporter:{{.Version}}
+    docker pull ghcr.io/gopaytech/rabbitmq_exporter:{{.ShortCommit}}
+    ```
+    
+    **Docker Hub:**
+    ```bash
+    docker pull gopaytech/rabbitmq-exporter:{{.Version}}
+    docker pull gopaytech/rabbitmq-exporter:{{.ShortCommit}}
+    ```
+    
+    ## 🏗️ Supported Architectures
+    - linux/amd64, linux/arm64, linux/arm/v6, linux/arm/v7
+    - darwin/amd64, darwin/arm64  
+    - windows/amd64
 
 dockers:
 - goos: linux
