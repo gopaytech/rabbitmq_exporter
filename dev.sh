@@ -34,7 +34,7 @@ check_prerequisites() {
     print_status "Checking prerequisites..."
     
     if ! command_exists go; then
-        print_error "Go is not installed. Please install Go 1.21 or later."
+        print_error "Go is not installed. Please install Go 1.22 or later."
         exit 1
     fi
     
