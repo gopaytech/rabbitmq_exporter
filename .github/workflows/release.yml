@@ -7,110 +7,94 @@ on:
 
 permissions:
   contents: write
-  packages: write
-  id-token: write
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  goreleaser:
+  release:
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      -
-        name: Set up Go
+      
+      - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
           check-latest: true
-      -
-        name: Run tests
+      
+      - name: Run tests
         run: go test -v ./...
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      -
-        name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-      -
-        name: Available buildx platforms
-        run: echo ${{ steps.buildx.outputs.platforms }}
-      -
-        name: Validate GoReleaser config
-        uses: goreleaser/goreleaser-action@v6
-        with:
-          distribution: goreleaser
-          version: latest
-          args: check
-      -
-        name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      -
-        name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-        if: ${{ secrets.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-            gopaytech/rabbitmq-exporter
-          tags: |
-            type=ref,event=tag
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=sha
-      -
-        name: Debug git state
+      
+      - name: Build binaries
         run: |
-          echo "Current tag: ${{ github.ref_name }}"
-          echo "Repository: ${{ github.repository }}"
-          git tag --list
-          git log --oneline -5
-      -
-        name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v6
+          # Create dist directory
+          mkdir -p dist
+          
+          # Build for multiple architectures
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.Revision=${{ github.sha }} -X main.Branch=main -X main.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o dist/rabbitmq_exporter_linux_amd64 .
+          
+          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.Revision=${{ github.sha }} -X main.Branch=main -X main.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o dist/rabbitmq_exporter_linux_arm64 .
+          
+          GOOS=linux GOARCH=arm GOARM=6 CGO_ENABLED=0 go build -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.Revision=${{ github.sha }} -X main.Branch=main -X main.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o dist/rabbitmq_exporter_linux_arm_v6 .
+          
+          GOOS=linux GOARCH=arm GOARM=7 CGO_ENABLED=0 go build -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.Revision=${{ github.sha }} -X main.Branch=main -X main.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o dist/rabbitmq_exporter_linux_arm_v7 .
+          
+          GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.Revision=${{ github.sha }} -X main.Branch=main -X main.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o dist/rabbitmq_exporter_darwin_amd64 .
+          
+          GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.Revision=${{ github.sha }} -X main.Branch=main -X main.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o dist/rabbitmq_exporter_darwin_arm64 .
+          
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w -X main.Version=${{ github.ref_name }} -X main.Revision=${{ github.sha }} -X main.Branch=main -X main.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o dist/rabbitmq_exporter_windows_amd64.exe .
+      
+      - name: Create archives
+        run: |
+          cd dist
+          
+          # Create tar.gz for unix binaries
+          tar -czf rabbitmq_exporter_${{ github.ref_name }}_linux_amd64.tar.gz rabbitmq_exporter_linux_amd64 -C .. README.md LICENSE config.example.json
+          tar -czf rabbitmq_exporter_${{ github.ref_name }}_linux_arm64.tar.gz rabbitmq_exporter_linux_arm64 -C .. README.md LICENSE config.example.json
+          tar -czf rabbitmq_exporter_${{ github.ref_name }}_linux_arm_v6.tar.gz rabbitmq_exporter_linux_arm_v6 -C .. README.md LICENSE config.example.json
+          tar -czf rabbitmq_exporter_${{ github.ref_name }}_linux_arm_v7.tar.gz rabbitmq_exporter_linux_arm_v7 -C .. README.md LICENSE config.example.json
+          tar -czf rabbitmq_exporter_${{ github.ref_name }}_darwin_amd64.tar.gz rabbitmq_exporter_darwin_amd64 -C .. README.md LICENSE config.example.json
+          tar -czf rabbitmq_exporter_${{ github.ref_name }}_darwin_arm64.tar.gz rabbitmq_exporter_darwin_arm64 -C .. README.md LICENSE config.example.json
+          
+          # Create zip for windows
+          zip rabbitmq_exporter_${{ github.ref_name }}_windows_amd64.zip rabbitmq_exporter_windows_amd64.exe ../README.md ../LICENSE ../config.example.json
+          
+          # Generate checksums
+          sha256sum *.tar.gz *.zip > checksums.txt
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
         with:
-          distribution: goreleaser
-          version: latest
-          args: release --clean
+          draft: false
+          prerelease: false
+          name: "RabbitMQ Exporter ${{ github.ref_name }}"
+          body: |
+            ## RabbitMQ Exporter ${{ github.ref_name }}
+            
+            This release includes multi-architecture binaries for the RabbitMQ Exporter.
+            
+            ### 📦 Installation
+            
+            Download the appropriate binary for your platform from the assets below.
+            
+            ### 🏗️ Supported Architectures
+            - linux/amd64, linux/arm64, linux/arm/v6, linux/arm/v7
+            - darwin/amd64, darwin/arm64  
+            - windows/amd64
+            
+            ### 📋 Usage
+            ```bash
+            # Extract the archive
+            tar -xzf rabbitmq_exporter_${{ github.ref_name }}_linux_amd64.tar.gz
+            
+            # Run the exporter
+            ./rabbitmq_exporter --version
+            ```
+          files: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/checksums.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCKER_CLI_EXPERIMENTAL: enabled
-      -
-        name: Upload Release Assets
-        if: success()
-        run: |
-          echo "✅ Release created successfully!"
-          echo "📦 Binaries and Docker images have been published"
-          echo "🔗 Check the release at: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
-      -
-        name: Debug release artifacts
-        if: always()
-        run: |
-          echo "=== Release Debug Information ==="
-          echo "Working directory contents:"
-          ls -la
-          echo "Dist directory contents:"
-          ls -la dist/ || echo "No dist directory found"
-          echo "GitHub API releases check:"
-          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/releases" | \
-            jq -r '.[0] | "Latest release: \(.tag_name) - \(.name)"' || echo "No releases found"
