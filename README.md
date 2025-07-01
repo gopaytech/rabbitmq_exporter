@@ -1,6 +1,7 @@
-# 📣 EOL Announcement
+# Announcement
 
-IMPORTANT: This exporter only works with RabbitMQ 3. Please use the official exporter for RabbitMQ 4 or newer. See https://github.com/kbudde/rabbitmq_exporter/issues/383 for details.
+This exporter is forked from the original repo which no longer maintained due to starting RabbitMQ 4, it has its own built-in exporter.
+In our case, due to dependency with this exporter, we have decided to continue maintain this exporter.
 
 # RabbitMQ Exporter [![CI](https://github.com/gopaytech/rabbitmq_exporter/workflows/CI/badge.svg)](https://github.com/gopaytech/rabbitmq_exporter/actions) [![Release](https://github.com/gopaytech/rabbitmq_exporter/workflows/Release/badge.svg)](https://github.com/gopaytech/rabbitmq_exporter/actions) [![Security](https://github.com/gopaytech/rabbitmq_exporter/workflows/Security/badge.svg)](https://github.com/gopaytech/rabbitmq_exporter/actions)
 
