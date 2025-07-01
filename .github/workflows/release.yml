@@ -50,16 +50,44 @@ jobs:
         run: |
           cd dist
           
-          # Create tar.gz for unix binaries
-          tar -czf rabbitmq_exporter_${{ github.ref_name }}_linux_amd64.tar.gz rabbitmq_exporter_linux_amd64 -C .. README.md LICENSE config.example.json
-          tar -czf rabbitmq_exporter_${{ github.ref_name }}_linux_arm64.tar.gz rabbitmq_exporter_linux_arm64 -C .. README.md LICENSE config.example.json
-          tar -czf rabbitmq_exporter_${{ github.ref_name }}_linux_arm_v6.tar.gz rabbitmq_exporter_linux_arm_v6 -C .. README.md LICENSE config.example.json
-          tar -czf rabbitmq_exporter_${{ github.ref_name }}_linux_arm_v7.tar.gz rabbitmq_exporter_linux_arm_v7 -C .. README.md LICENSE config.example.json
-          tar -czf rabbitmq_exporter_${{ github.ref_name }}_darwin_amd64.tar.gz rabbitmq_exporter_darwin_amd64 -C .. README.md LICENSE config.example.json
-          tar -czf rabbitmq_exporter_${{ github.ref_name }}_darwin_arm64.tar.gz rabbitmq_exporter_darwin_arm64 -C .. README.md LICENSE config.example.json
+          # Create temporary directories for each archive
+          mkdir -p temp_linux_amd64 temp_linux_arm64 temp_linux_arm_v6 temp_linux_arm_v7 temp_darwin_amd64 temp_darwin_arm64 temp_windows_amd64
+          
+          # Copy binaries with standard name and documentation
+          cp rabbitmq_exporter_linux_amd64 temp_linux_amd64/rabbitmq_exporter
+          cp ../README.md ../LICENSE ../config.example.json temp_linux_amd64/
+          
+          cp rabbitmq_exporter_linux_arm64 temp_linux_arm64/rabbitmq_exporter
+          cp ../README.md ../LICENSE ../config.example.json temp_linux_arm64/
+          
+          cp rabbitmq_exporter_linux_arm_v6 temp_linux_arm_v6/rabbitmq_exporter
+          cp ../README.md ../LICENSE ../config.example.json temp_linux_arm_v6/
+          
+          cp rabbitmq_exporter_linux_arm_v7 temp_linux_arm_v7/rabbitmq_exporter
+          cp ../README.md ../LICENSE ../config.example.json temp_linux_arm_v7/
+          
+          cp rabbitmq_exporter_darwin_amd64 temp_darwin_amd64/rabbitmq_exporter
+          cp ../README.md ../LICENSE ../config.example.json temp_darwin_amd64/
+          
+          cp rabbitmq_exporter_darwin_arm64 temp_darwin_arm64/rabbitmq_exporter
+          cp ../README.md ../LICENSE ../config.example.json temp_darwin_arm64/
+          
+          cp rabbitmq_exporter_windows_amd64.exe temp_windows_amd64/rabbitmq_exporter.exe
+          cp ../README.md ../LICENSE ../config.example.json temp_windows_amd64/
+          
+          # Create tar.gz archives
+          tar -czf rabbitmq_exporter_${{ github.ref_name }}_linux_amd64.tar.gz -C temp_linux_amd64 .
+          tar -czf rabbitmq_exporter_${{ github.ref_name }}_linux_arm64.tar.gz -C temp_linux_arm64 .
+          tar -czf rabbitmq_exporter_${{ github.ref_name }}_linux_arm_v6.tar.gz -C temp_linux_arm_v6 .
+          tar -czf rabbitmq_exporter_${{ github.ref_name }}_linux_arm_v7.tar.gz -C temp_linux_arm_v7 .
+          tar -czf rabbitmq_exporter_${{ github.ref_name }}_darwin_amd64.tar.gz -C temp_darwin_amd64 .
+          tar -czf rabbitmq_exporter_${{ github.ref_name }}_darwin_arm64.tar.gz -C temp_darwin_arm64 .
           
           # Create zip for windows
-          zip rabbitmq_exporter_${{ github.ref_name }}_windows_amd64.zip rabbitmq_exporter_windows_amd64.exe ../README.md ../LICENSE ../config.example.json
+          cd temp_windows_amd64 && zip ../rabbitmq_exporter_${{ github.ref_name }}_windows_amd64.zip * && cd ..
+          
+          # Clean up temp directories
+          rm -rf temp_*
           
           # Generate checksums
           sha256sum *.tar.gz *.zip > checksums.txt
